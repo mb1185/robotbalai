@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<html>
+    <head>
+      {% if title %}
+      <title>{{ title }}</title>
+      {% else %}
+      <title>Robot Balai</title>
+      {% endif %}
+		<script src='https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js'></script>
+          <!-- Bootstrap CSS --> 
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+   
+		<script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
+		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+		
+		<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+		<script>
+			var socket;
+		
+	
+			// The http vs. https is important. Use http for localhost!
+			socket = io.connect('http://' + document.domain + ':' + location.port);
+			// Button was clicked
+ 
+			socket.on('update_logger', function(msg) {
+				console.log('update_logger', msg);
+				var textarea = document.getElementById("id_log");
+				textarea.innerHTML += '\n' + new Date().toLocaleString() +  " : " +  msg;
+				textarea.scrollTop = textarea.scrollHeight;
+				
+			});
+			
+			socket.on('update_parametre', function(msg) {
+				console.log('update_parametre', msg);
+				var num_param = msg['num_param'];
+				values = msg['value'];
+				var tab = document.getElementById("tableau");
+				var arrayLignes =tab.rows;
+				arrayLignes[num_param + 1].cells[1].innerHTML = values;
+							
+			});
+			
+			function eeprom_save() {
+				var payload = "";
+				var data = {'topic' : 'robot_balai/cmd/eeprom_save', 'payload' : payload};
+				fc_mqtt(data)
+			}
+
+			function eeprom_restore() {
+				var payload = "";
+				var data = {'topic' : 'robot_balai/cmd/eeprom_restore', 'payload' : payload};
+				fc_mqtt(data)
+			}
+			
+			function fc_mqtt(data) {
+				console.log('Envoi commande mqtt: ' + JSON.stringify(data));
+				socket.emit('cmd_mqtt', data);
+			}		
+		//});
+		</script>
+	
+    </head>
+    <body>
+		<!-- Bar de navigation --> 
+		<ul class="nav">
+		  <li class="nav-item">
+			<a class="nav-link active" href="/home">Home</a>
+		  </li>
+		  <li class="nav-item">
+			<a class="nav-link" href="/parametres">Parametres</a>
+		  </li>
+		  <li class="nav-item">
+			<a class="nav-link" href="#">Link</a>
+		  </li>
+		  <li class="nav-item">
+			<a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+		  </li>
+		</ul>
+		<!-- ---------------- --> 
+        
+		<div class="card">
+			<div class="card-header">Logger</div>     
+			<div class="card-body text-center"> 
+				<textarea id="id_log" name="logger" rows="3" cols="200" >log...</textarea>
+			</div>    
+		</div>
+		{% block content %}{% endblock %}
+    </body>
+</html>

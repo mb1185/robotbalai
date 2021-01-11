@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<script>
+
+	</script>
+	<!-- --------------------->
+
+
+
+	<center>
+		<h1>{{ title }}</h1>
+	</center>
+
+	<div class="container" style="padding:10px">
+		<div class="card ">
+			<div class="card-header text-center">PARAMETRES</div>     
+				<div class="card-body"> 
+					<table class="table text-center" id="tableau">
+					  <thead>
+						<tr>
+						  <th scope="col">Nom</th>
+						  <th scope="col">Valeur</th>
+						  <th scope="col">CMD</th>
+						  <th scope="col">GET</th>
+						  <th scope="col">SET</th>
+						</tr>
+					  </thead>
+					  <tbody id=tableau_body>
+
+					  </tbody>
+					</table>
+				</div>   
+			<div class="container text-center">
+
+				<button id="button_save" name="button_save" type="submit" class="btn btn-secondary mx-1" value="1" onclick="eeprom_save()">Save Eeprom</> 
+				<button id="button_restore" name="button_restore" type="submit" class="btn btn-secondary mx-1" value="1" onclick="eeprom_restore()">Restore Eeprom</>
+			</div>	
+		</div>
+	</div>
+			
+
+	
+    <script>
+	
+	
+		function fc_button(num_param, set){
+
+			var tablignes = document.getElementById("tableau").rows
+			var num = parseInt(num_param,10) + 1;
+			var value = document.getElementById("id_input_" + num_param).value;
+			var payload = {'num_param':num_param, 'value': value}
+			var topic = 'robot_balai/cmd/get_parametre'
+			if (set){
+				topic = 'robot_balai/cmd/set_parametre'
+			}
+				var data = {'topic' : topic, 'payload' : JSON.stringify(payload)};
+			fc_mqtt(data)			
+		}
+			
+		function add_button(type, parent) {
+		  //Create an input type dynamically.   
+		  var element = document.createElement("button");
+		  //Assign different attributes to the element. 
+		  element.class = "btn btn-secondary";
+		  element.type ="submit";
+		  
+		  element.id = type['id'];
+		  element.value = type['value']; // Really? You want the default value to be the type string?
+		  element.name = type['id']; // And the name too?
+		  element.innerHTML = type['text'];
+		  element.onclick = function() { // Note this is a function
+			fc_button(element.value, type['set']);
+		  };
+
+		  //Append the element in page (in span).  
+		  parent.appendChild(element);
+		}
+	
+		function add_input(type, parent) {
+		  //Create an input type dynamically.   
+		  var element = document.createElement("input");
+		  //Assign different attributes to the element. 
+		  //element.class = "btn btn-secondary";
+		  element.type ="text";
+		  
+		  element.id = type['id'];
+		  element.value = type['text']; // Really? You want the default value to be the type string?
+		  element.name = type['id']; // And the name too?
+		  
+
+		  //Append the element in page (in span).  
+		  parent.appendChild(element);
+		}
+		
+		var params = []
+		var tab = document.getElementById("tableau");
+		
+
+		var i = 0;
+		{% for param in parametres %}
+			
+			var ligne = tab.insertRow(-1);
+
+			
+			{% for key, value in param.items() %}
+				var colonne_nom_param = ligne.insertCell(-1);
+				colonne_nom_param.innerHTML = "{{ value }}";
+				
+
+
+			{% endfor %}
+			
+			var colonne_nom_param = ligne.insertCell(-1);
+			add_input({'id':'id_input_' + i.toString(), 'value': i , 'text' : '0'}, colonne_nom_param)					
+			var colonne_nom_param = ligne.insertCell(-1);
+			add_button({'id':'id_button_get_param' + i.toString(), 'value': i, 'text' : 'GET', 'set' : 0 }, colonne_nom_param)
+			var colonne_nom_param = ligne.insertCell(-1);
+			add_button({'id':'id_button_set_param' + i.toString(), 'value': i , 'text' : 'SET', 'set': 1 }, colonne_nom_param)
+					
+			i = i+ 1;
+		{% endfor %}
+		
+		
+		
+
+    </script>
+    </div>
+	
+{% endblock %}

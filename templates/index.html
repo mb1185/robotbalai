@@ -1,0 +1,435 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+	<script>
+			var cercle_robot;
+			var sol_robot;
+			
+
+			$( document ).ready(function(){
+			
+			
+				  $("#closeAlerte").click(function(){
+					$("#alarme").alert("close");
+					console.log('Close alarme');
+				  });
+				  
+				  $('.alert').on('close.bs.alert', function (e) {
+					e.preventDefault();
+					$(this).hide();
+				});
+			
+			});
+
+			
+ 			
+			socket.on('update_mesure360', function(msg) {
+				console.log('After connect', msg);
+				labels = msg['labels'];
+				values = msg['values'];
+				barData.labels = labels;
+				barData.datasets[0].data = values;
+				myRadarChart.update();
+				
+			});
+			socket.on('update_coordonnees', function(msg) {
+				console.log('update_coordonnees', msg);
+				document.getElementById("id_x").innerHTML = "X: " +  msg['X'];
+				document.getElementById("id_y").innerHTML = "Y: " + msg['Y'];
+				document.getElementById("id_a").innerHTML = "A: " + msg['A'];
+				document.getElementById("id_d").innerHTML = "D: " + msg['D'];
+				cercle_robot.setAttribute("cx", sol_robot.x.baseVal.value + msg['X'] / 40);
+				cercle_robot.setAttribute("cy", sol_robot.y.baseVal.value + msg['Y'] / 40);
+			});
+			socket.on('update_ina226', function(msg) {
+				console.log('update_ina226', msg);
+				document.getElementById("ina226_vbus").innerHTML = "Vbus: " +  msg['Vbus'];
+				document.getElementById("ina226_vshunt").innerHTML = "Vshunt: " + msg['Vshunt'];
+				document.getElementById("ina226_puissance").innerHTML = "P: " + msg['P'];
+				document.getElementById("ina226_courant").innerHTML = "I: " + msg['I'];
+			});
+			
+			socket.on('update_seq_auto', function(msg) {
+				console.log('update_seq_auto', msg);
+				document.getElementById("seq_auto_seq").innerHTML = msg['SEQ'];
+				document.getElementById("seq_auto_i").innerHTML = msg['I'];
+			});
+			
+			socket.on('update_carte_sol', function(msg) {
+				console.log('update_carte_sol', msg);
+				labels = msg['labels'];
+				values = msg['values'];
+				carte_sol_data.labels = labels;
+				carte_sol_data.datasets[0].data = values;
+				scatter.update();
+				
+			});
+			
+			// Test Mouvement
+			function fc_test_mouvement() {
+				var payload = document.getElementById("input_test_mouvement").value;
+				var data = {'topic' : 'robot_balai/cmd/test_mouvement', 'payload' : payload};
+				fc_mqtt(data)
+			}
+			
+			// Move to
+			function fc_move_to() {
+				var payload = document.getElementById("input_move_to").value;
+				var data = {'topic' : 'robot_balai/cmd/move_to', 'payload' : payload};
+				fc_mqtt(data)
+			}
+			
+			
+			// Mesure360----------------------------
+			function fc_mesure360() {
+				var payload = document.getElementById("input_mesure360").value;
+				var data = {'topic' : 'robot_balai/cmd/mesure360', 'payload' : payload};
+				fc_mqtt(data)
+			}
+
+			//---RAZ Coordonnee
+			
+			function fc_raz() {
+				var payload = "";
+				var data = {'topic' : 'robot_balai/cmd/raz_robot', 'payload' : payload};
+				fc_mqtt(data)
+			}
+
+			function fc_manu() {
+				var payload = document.getElementById("button_mode_manu").value
+				var data = {'topic' : 'robot_balai/cmd/mode', 'payload' : payload};
+				fc_mqtt(data)
+			}
+
+			function fc_auto() {
+				var tps_auto = document.getElementById("input_tps_auto").value
+				var payload = {'mode':'Auto', 'temps': tps_auto};
+				var data = {'topic' : 'robot_balai/cmd/mode', 'payload' : JSON.stringify(payload)};
+				fc_mqtt(data);
+			}
+			
+			function fc_test_balai() {
+				var payload = document.getElementById("input_test_balai").value;
+				var data = {'topic' : 'robot_balai/cmd/test_balai', 'payload' : payload};
+				fc_mqtt(data)
+			}			
+
+			
+			function fc_collision() {
+				var payload = "";
+				var data = {'topic' : 'robot_balai/cmd/collision', 'payload' : payload};
+				fc_mqtt(data);
+				$("#alarme").show();
+			}
+			
+			function fc_result360() {
+				var payload = "";
+				var data = {'topic' : 'robot_balai/cmd/result_mesure360', 'payload' : payload};
+				fc_mqtt(data)
+			}
+			
+			function fc_pulse_debug() {
+				var payload = "";
+				var data = {'topic' : 'robot_balai/cmd/debug', 'payload' : payload};
+				fc_mqtt(data)
+			}
+			
+			
+			function fc_effacer_carte_sol() {
+				fcCmd('effacer_carte_sol', '')
+			}
+			
+			
+			function fc_boussole() {
+				var payload = "";
+				var data = {'topic' : 'robot_balai/cmd/boussole', 'payload' : payload};
+				fc_mqtt(data)
+			}
+
+			function fc_ina226() {
+				var payload = "";
+				var data = {'topic' : 'robot_balai/cmd/ina226', 'payload' : payload};
+				fc_mqtt(data)
+			}
+					
+			
+			function fcCmd(cmd, data) {
+				console.log('Envoi commande');
+				socket.emit(cmd, {'text': data});
+			}
+
+			
+	
+		
+	</script>
+	<!-- --------------------->
+
+
+
+	<center>
+		<h1>{{ title }}</h1>
+		<div class="alert alert-warning alert-dismissible fade show" id="alarme" role="alert">
+		  <strong>Holy guacamole!</strong> You should check in on some of those fields below.
+		  <button type="button" class="close" id="closeAlerte">
+			<span aria-hidden="true">&times;</span>
+		  </button>
+		</div>
+	</center>
+
+	<div class="container-fluid">
+	
+		<div class="row">
+
+			<div class="col-sm-4">
+
+				
+					<div class="card">
+						<div class="card-header">Etat</div>     
+						<div class="card-body"> 
+							<span id="id_x" class="badge badge-primary">X:5000.0</span>
+							<span id="id_y" class="badge badge-primary">Y:5000.0</span>
+							<span id="id_a" class="badge badge-primary">A:90.0</span>
+							<span id="id_d" class="badge badge-primary">D:90.0</span>
+						</div>    
+						<div class="card-header">Ina226</div>     
+						<div class="card-body"> 
+							<span id="ina226_vbus" class="badge badge-primary">Vbus:0.0</span>
+							<span id="ina226_vshunt" class="badge badge-primary">Vshunt:0.0</span>
+							<span id="ina226_puissance" class="badge badge-primary">P:0.0</span>
+							<span id="ina226_courant" class="badge badge-primary">I:0.0</span>
+						</div> 
+						<div class="card-header">SEQUENCE AUTO</div>     
+						<div class="card-body"> 
+							<span id="seq_auto_seq" class="badge badge-primary">?</span>
+							<span id="seq_auto_i" class="badge badge-primary">?</span>
+						</div> 
+					</div>
+				
+			
+					<div class="card" >
+						<div class="card-header">Commande</div>     
+						<div class="card-body py-1"> 							
+									<button id="button_raz" name="button_raz" type="submit" class="btn btn-secondary mx-1" value="1" onclick="fc_raz()">RAZ</> 
+									<button id="button_collision" name="button_collision" type="submit" class="btn btn-secondary mx-1" value="1" onclick="fc_collision()">Info collision</> 
+									<button id="button_resultmesure360" name="button_resultmesure360" type="submit" class="btn btn-secondary mx-1" value="1" onclick="fc_result360()">Resultat Mesure 360</> 
+									<button id="button_debug_pulse" name="button_debug_pulse" type="submit" class="btn btn-secondary mx-1" value="1" onclick="fc_pulse_debug()">Pulse Debug</> 
+						</div> 
+						<div class="card-body py-1"> 
+								
+									<button id="button_boussole" name="button_boussole" type="submit" class="btn btn-secondary mx-1" value="1" onclick="fc_boussole()">Boussole</> 
+									<button id="button_ina226" name="button_ina226" type="submit" class="btn btn-secondary mx-1" value="1" onclick="fc_ina226()">Ina226</> 
+								
+						</div> 
+						
+						<div class="card-body py-1"> 
+								<div class="input-group">
+									<button id="button_mode_manu" name="button_mode_manu" type="submit" class="btn btn-secondary mx-1" value="{'mode':&quot;Manu&quot;}" onclick="fc_manu()">MANU</> 								
+									<button id="button_mode_auto" name="button_mode_auto" type="submit" class="btn btn-secondary mx-1" value="{'mode':'Auto'}" onclick="fc_auto()">AUTO</button> 
+									<input type="text" class="form-control"  id="input_tps_auto" value="60">
+								</div>
+						</div>  					
+					</div>
+				
+				<!-- Commande Mouvement -->
+					<div class="card">
+						<div class="card-header">Mouvement</div>     
+								<div class="card-body py-1"> 
+									<div class="input-group">
+										  <div class="input-group-prepend">
+											<span class="input-group-text" id="">Test Mouvement</span>
+										  </div>
+										  <input type="text"  class="form-control" id="input_test_mouvement" value="{'direction':'avance', 'temps':1000, 'vitesse':150}">
+										  <button id="button_test_mouvement" name="button_test_mouvement" type="submit" class="btn btn-secondary" value="" onclick="fc_test_mouvement()">GO</>
+									</div>
+								</div> 
+								<div class="card-body py-1"> 
+									<div class="input-group">
+										  <div class="input-group-prepend">
+											<span class="input-group-text" id="">Test Balai</span>
+										  </div>
+										  <input type="text"  class="form-control" id="input_test_balai" value="{'sens':0, 'temps':1000, 'vitesse':150}">
+										  <button id="button_test_balai" name="button_test_balai" type="submit" class="btn btn-secondary" value="" onclick="fc_test_balai()">GO</>
+									</div>
+								</div> 
+								<div class="card-body py-1"> 
+									<div class="input-group">
+										  <div class="input-group-prepend">
+											<span class="input-group-text" id="">Move to</span>
+										  </div>
+										  <input type="text"  class="form-control" id="input_move_to" value="{'direction':'x', 'destination':'100', 'vitesse':150}">
+										  <button id="button_move_to" name="button_move_to" type="submit" class="btn btn-secondary" value="" onclick="fc_move_to()">GO</>
+									</div>
+								</div>
+								<div class="card-body py-1"> 
+									<div class="input-group">
+										  <div class="input-group-prepend">
+											<span class="input-group-text" id="">Mesure 360</span>
+										  </div>
+										  <input type="text"  class="form-control" id="input_mesure360" value="{'inc_angle':'10','angle_max':'360','vitesse':'100'}">
+										  <button id="button_mesure360" name="button_move_to" type="submit" class="btn btn-secondary" value="" onclick="fc_mesure360()">GO</>
+									</div>
+								</div>
+					</div>   
+			</div>
+			
+			
+			<div class="col-sm">
+					<nav class="nav nav-tabs">
+					  <a class="nav-item nav-link active" href="#p1" data-toggle="tab">Visu</a>
+					  <a class="nav-item nav-link" href="#p2" data-toggle="tab">Carte Sol</a>
+					  <a class="nav-item nav-link" href="#p2" data-toggle="tab">Radar</a>
+					</nav>
+					<div class="tab-content">
+					<!-- Onglet 1 -->
+					  <div class="tab-pane fade show active" id="p1">
+						<div class="card text-center" >
+							<div class="card-header">
+								Carte Col
+							</div>
+							<div class="card-body">
+								<canvas id="chart_carte_sol"></canvas>
+								<button id="button_effacer_carte_sol" name="button_effacer_carte_sol" type="submit" class="btn btn-secondary" value="1" onclick="fc_effacer_carte_sol()">Effacer</button> 
+							</div>
+						</div>					  
+					  </div>
+					  <!-- Onglet 2 -->
+					  <div class="tab-pane fade" id="p2">
+						<div class="card text-center" >
+							<div class="card-header">
+								Carte
+							</div>
+							<div class="card-body">
+								<object id="svg_robot" type="image/svg+xml" data="static/robot.svg"> </object>
+							</div>
+						</div>					  				  
+					  </div>
+					  <!-- Onglet 3 -->
+					  <div class="tab-pane fade" id="p3">
+						<div class="card text-center" >
+							<div class="card-header">
+								Radar
+							</div>
+							<div class="card-body">
+								<canvas id="chart" ></canvas>
+							</div>
+						</div>					  				  
+					  </div>
+					</div>
+
+			</div>
+			
+		</div>
+		
+
+		
+	</div>
+	
+
+	
+	
+    <script>
+	
+		function random_rgb() {
+			return 'rgb(' + (Math.floor(Math.random() * 256)) + ',' + (Math.floor(Math.random() * 256)) + ',' + (Math.floor(Math.random() * 256)) + ')';
+		}
+		var svg_robot = document.getElementById("svg_robot");
+		console.log(svg_robot);
+		
+		svg_robot.addEventListener("load", function () {
+			cercle_robot = svg_robot.contentDocument.getElementById("robot");
+			sol_robot = svg_robot.contentDocument.getElementById("sol");
+			console.log(cercle_robot.style.fill);	
+			cercle_robot.style.fill = random_rgb();
+			cercle_robot.setAttribute("cx",500.0);
+			//cercle_robot.transform = "translate(20,20)";
+			
+			//cercle_robot.setAttribute("fill", "red");
+			console.log(cercle_robot);			
+		
+		})
+
+		
+		
+		window.chartColors = {
+		  red: 'rgb(255, 99, 132)',
+		  orange: 'rgb(255, 159, 64)',
+		  yellow: 'rgb(255, 205, 86)',
+		  green: 'rgb(75, 192, 192)',
+		  blue: 'rgb(54, 162, 235)',
+		  purple: 'rgb(153, 102, 255)',
+		  grey: 'rgb(201, 203, 207)'
+		};
+      // bar chart data
+      var barData = { labels : [	], datasets : [{ data : [	    ]}]}
+	  var carte_sol_data = { labels : [	], datasets : [{ data : [	    ]}]}
+	  carte_sol_data.datasets[0].pointBackgroundColor = window.chartColors.red;
+	  carte_sol_data.datasets[0].pointRadius = 4
+	  
+
+        /*
+      Chart.defaults.global.animationSteps = 50;
+      Chart.defaults.global.tooltipYPadding = 16;
+      Chart.defaults.global.tooltipCornerRadius = 0;
+      Chart.defaults.global.tooltipTitleFontStyle = "normal";
+      Chart.defaults.global.tooltipFillColor = "rgba(0,0,0,0.8)";
+      Chart.defaults.global.animationEasing = "easeOutBounce";
+      Chart.defaults.global.responsive = false;
+      Chart.defaults.global.scaleLineColor = "black";
+      Chart.defaults.global.scaleFontSize = 16;
+        */
+        
+      // get bar chart canvas
+      var mychart = document.getElementById("chart").getContext("2d");
+	  var canvas_carte_sol = document.getElementById("chart_carte_sol").getContext("2d");
+
+      steps = 10
+      //max = {{ max }}
+      // draw bar chart
+    
+      var myRadarChart = new Chart(mychart, {
+        type: 'radar',
+        data: barData,
+        options:  {
+                    scale: {
+                        angleLines: {
+                            display: false
+                        },
+                        suggestedMin: 50,
+                        suggestedMax: 100
+                    }
+                }
+        });
+      var scatter = new Chart(canvas_carte_sol, {
+        type: 'scatter',
+        data: carte_sol_data,
+        options:  {
+			scales: {
+						xAxes: [{
+							type: 'linear',
+							position: 'bottom',
+							ticks: {
+									max: 100,
+									min: 0,
+									stepSize: 1.0,
+									maxTicksLimit : 500
+								}
+						}],
+						yAxes: [{
+							ticks: {
+									max: 100,
+									min: 0,
+									stepSize: 1.0,
+									maxTicksLimit : 500
+								}
+						}]
+
+					}
+                }
+        });
+    </script>
+    
+  
+
+
+{% endblock %}
