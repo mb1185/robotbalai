@@ -4,30 +4,6 @@ Created on Wed Oct 28 14:18:19 2020
 
 @author: mbaillot
 """
-"""
-robot_balai/cmd/test_avance {"temps":1, "vitesse":255}
-robot_balai/cmd/test_recule {"temps":1, "vitesse":255}
-robot_balai/cmd/test_gauche {"temps":1, "vitesse":255}
-robot_balai/cmd/test_droite {"temps":1, "vitesse":255}
-
-robot_balai/cmd/test_balai {"temps":1, "sens":1}
-robot_balai/cmd/test_pelle {"angle":50}
-robot_balai/cmd/test_brosette {"temps":2}
-robot_balai/cmd/test_servo_ultrason {"position":50}
-robot_balai/cmd/set_angle_pelle {"angle_repli":150, "angle_sol":30}
-robot_balai/cmd/pelle {"position":"sol"} // sol/repli
-robot_balai/cmd/mode {"mode":"Manu"} // Auto/Manu 
-robot_balai/cmd/ultrason {} // Mesure ultrason 
-robot_balai/cmd/raz_robot {}
-robot_balai/cmd/test_move_x {"x":20, "vitesse":255}
-robot_balai/cmd/test_move_y {"y":20, "vitesse":255}
-robot_balai/cmd/test_move_a {"a":20, "vitesse":255}
-robot_balai/cmd/move_to
-robot_balai/cmd/debug {}
-robot_balai/cmd/mesure360 {"inc_angle": 30} //Mesure 360° suivant increment de l'angle
-robot_balai/cmd/carte_sol {} //recupere les points de la carte sol
-robot_balai/cmd/result_mesure360 {}
-"""
 
 import paho.mqtt.client as mqtt
 
@@ -198,8 +174,6 @@ for i in range (2):
 
 @app.route("/home")
 def home():
-    bar_labels=labels
-    bar_values=values
     #client.publish("robot_balai/cmd/mesure360", "10;20;30")
     return render_template('index.html', title='Robot Balai', max=100, labels=labels, values=values)
 
