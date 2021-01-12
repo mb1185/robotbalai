@@ -37,7 +37,7 @@ parametres.append({'nom':'R_FACTEUR_DEF_VITESSE', 'value': 40})
 parametres.append({'nom':'R_SEQ_TPS_STAB', 'value': 3000})
 
 
-
+#fonction logger
 def logger(data):
     socketio.emit("update_logger", data)   
 
