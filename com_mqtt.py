@@ -160,7 +160,7 @@ client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 
-client.connect("192.168.0.216", 1883, 60)
+client.connect_async("192.168.0.216", 1883, 60)
 #client.connect("mqtt.eclipse.org", 1883)
 
 client.loop_start()
@@ -200,4 +200,4 @@ def message_cmd_mqtt(data):
     
 if __name__ == '__main__':
     #app.run(host="localhost", port=8000, debug=True)
-    socketio.run(app, port=8000, debug=True)
+    socketio.run(app,host="0.0.0.0" ,port=8000, debug=True)
