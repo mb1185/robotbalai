@@ -108,7 +108,13 @@
 				var data = {'topic' : 'robot_balai/cmd/mode', 'payload' : JSON.stringify(payload)};
 				fc_mqtt(data);
 			}
-			
+
+			function fc_distant() {
+				var payload = document.getElementById("button_mode_distant").value
+				var data = {'topic' : 'robot_balai/cmd/mode', 'payload' : payload};
+				fc_mqtt(data)
+			}
+
 			function fc_test_balai() {
 				var payload = document.getElementById("input_test_balai").value;
 				var data = {'topic' : 'robot_balai/cmd/test_balai', 'payload' : payload};
@@ -220,9 +226,11 @@
 						</div> 
 						<div class="card-body py-1"> 
 								<div class="input-group">
-									<button id="button_mode_manu" name="button_mode_manu" type="submit" class="btn btn-secondary mx-1" value="{'mode':&quot;Manu&quot;}" onclick="fc_manu()">MANU</> 								
+									<button id="button_mode_manu" name="button_mode_manu" type="submit" class="btn btn-secondary mx-1" value="{'mode':&quot;Manu&quot;}" onclick="fc_manu()">MANU</>
+									<button id="button_mode_distant" name="button_mode_distant" type="submit" class="btn btn-secondary mx-1" value="{'mode':'Distant'}" onclick="fc_distant()">DISTANT</button>
 									<button id="button_mode_auto" name="button_mode_auto" type="submit" class="btn btn-secondary mx-1" value="{'mode':'Auto'}" onclick="fc_auto()">AUTO</button> 
 									<input type="text" class="form-control"  id="input_tps_auto" value="60">
+									
 								</div>
 						</div>  					
 					</div>
