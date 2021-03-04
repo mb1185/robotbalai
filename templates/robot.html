@@ -109,7 +109,12 @@
 				var data = {'topic' : 'robot_balai/cmd/mode', 'payload' : payload};
 				fc_mqtt(data)
 			}
-			
+
+			document.getElementById("button_mode_distant").onclick = function() {
+				var payload = document.getElementById("button_mode_distant").value
+				var data = {'topic' : 'robot_balai/cmd/mode', 'payload' : payload};
+				fc_mqtt(data)
+			}			
 			document.getElementById("button_test_balai").onclick = function() {
 				var text = document.getElementById("input_test_balai").value;
 				fcCmd('test_balai', text)
@@ -221,6 +226,7 @@
 							<div class="input-group">
 								<button id="button_mode_auto" name="button_mode_auto" type="submit" class="btn btn-secondary" value="{'mode':&quot;Manu&quot;}">MANU</> 
 								<button id="button_mode_manu" name="button_mode_manu" type="submit" class="btn btn-secondary" value="{'mode':&quot;Auto&quot;}">AUTO</> 
+								<button id="button_mode_distant" name="button_mode_distant" type="submit" class="btn btn-secondary" value="{'mode':&quot;Distant&quot;}">DISTANT</> 
 							</div>
 					</div>  					
 				</div>

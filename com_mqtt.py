@@ -10,11 +10,12 @@ import paho.mqtt.client as mqtt
 from flask import Flask, render_template, redirect, url_for, request 
 from flask import jsonify
 from flask_socketio import SocketIO
-
+import mode_distante #gestion mode distant
 import json
 
 app = Flask(__name__)
 socketio = SocketIO(app)
+
 
 
 labels = []
@@ -39,6 +40,7 @@ parametres.append({'nom':'R_SEQ_TPS_STAB', 'value': 3000})
 
 #fonction logger
 def logger(data):
+    print ("logger emit :", data)
     socketio.emit("update_logger", data)   
 
 
@@ -152,7 +154,22 @@ def on_message(client, userdata, msg):
         #labels.pop(index)
         labels.insert(index, angle)
         #values.pop(index)
-        values.insert(index, mesure)  
+        values.insert(index, mesure) 
+    
+    if (msg.topic == "robot_balai/mode/etat"):
+        data_json = str(msg.payload.decode("utf-8"))
+        if data_json == "Distant":
+            gestion_distance.activation = True
+            print ("Activation mode distant!")
+        else:
+            gestion_distance.activation = False
+            print ("Désactivation mode distant!")
+
+
+    if (msg.topic == "robot_balai/etat/mcrd"):
+        data_json = json.loads(str(msg.payload.decode("utf-8")))
+        gestion_distance.set_status(data_json)
+
 
         
 
@@ -160,12 +177,17 @@ client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 
-client.connect_async("192.168.0.216", 1883, 60)
+#client.connect_async("192.168.0.216", 1883, 60)
+client.connect_async("127.0.0.1", 1883, 60)
 #client.connect("mqtt.eclipse.org", 1883)
 
 client.loop_start()
 
-
+#Gestion mode distant
+gestion_distance = mode_distante.gestion_distant(client)
+gestion_distance.start()
+print ("BLBBL")
+#-------------------
 
 for i in range (2):
     labels.append(str(i))
@@ -194,10 +216,14 @@ def message_effacer_carte_sol(data):
 
 @socketio.on('cmd_mqtt')   
 def message_cmd_mqtt(data):   
-    print('topi:%s payload:%s' % (data['topic'],data['payload']))
+    print('topic:%s payload:%s' % (data['topic'],data['payload']))
     client.publish(data['topic'], data['payload'] )
     
     
 if __name__ == '__main__':
     #app.run(host="localhost", port=8000, debug=True)
-    socketio.run(app,host="0.0.0.0" ,port=8000, debug=True)
+    socketio.run(app,host="0.0.0.0" ,port=8000, debug=True) # Attention en mode debug 2 instance sont lancés!
+    print ("Arret Thread gestion distant")
+    gestion_distance.join()
+    
+    

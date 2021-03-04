@@ -20,3 +20,17 @@ robot_balai/cmd/debug {}
 robot_balai/cmd/mesure360 {"inc_angle": 30} //Mesure 360° suivant increment de l'angle
 robot_balai/cmd/carte_sol {} //recupere les points de la carte sol
 robot_balai/cmd/result_mesure360 {}
+
+#Commande pour control auto en distance
+robot_balai/cmd/mcrd {"N": int, "P1" : int, "P2" : int, "P3" : int, "P4" : int} // N = numero de commande, 
+        P1 = Numero mouvement : 1 = Avance X, 2 = Recule X,  3 =mesure 360, 4 =rotation  
+        P2 = Position X demande / Angle demande
+        P3 = Position Y demande
+        P4 = Angle demande
+robot_balai/etat/mcrd {"N": int, "E1": int, "E2" :int, "E3": int, "E4", "E5"} // 
+        N = numero commande en cours, 
+        E1 : etat commande (1 = Commande en cours, 2= Commande Termine) 
+        E2 : Defaut arret (0 = pas defaut, 1= def courant, 2= collision droit, 3=collision gauche, 4=Defaut vitesse ...)
+        E3 : Position X
+        E4 : Position y
+        E5 : Position A
