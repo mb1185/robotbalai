@@ -5,13 +5,16 @@ Created on Wed Oct 28 14:18:19 2020
 @author: mbaillot
 """
 
+import json
 import paho.mqtt.client as mqtt
+import mode_distante #gestion mode distant
+
 
 from flask import Flask, render_template, redirect, url_for, request 
 from flask import jsonify
 from flask_socketio import SocketIO
-import mode_distante #gestion mode distant
-import json
+
+
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -222,7 +225,7 @@ def message_cmd_mqtt(data):
     
 if __name__ == '__main__':
     #app.run(host="localhost", port=8000, debug=True)
-    socketio.run(app,host="0.0.0.0" ,port=8000, debug=True) # Attention en mode debug 2 instance sont lancés!
+    socketio.run(app,host="localhost" ,port=8001, debug=True) # Attention en mode debug 2 instance sont lancés!
     print ("Arret Thread gestion distant")
     gestion_distance.join()
     
